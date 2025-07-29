@@ -1,0 +1,171 @@
+CREATE TABLE NGUOI_DUNG (
+    username NVARCHAR(50) PRIMARY KEY,
+    password NVARCHAR(50) NOT NULL,
+    ho_ten NVARCHAR(50) NOT NULL,
+    ngay_sinh DATE NOT NULL,
+    gioi_tinh NVARCHAR(10) CHECK (gioi_tinh IN ('Nam', 'Nữ')),
+    so_dien_thoai VARCHAR(15),
+    email NVARCHAR(50),
+    role NVARCHAR(20) NOT NULL CHECK (role IN ('sinh_vien', 'giang_vien', 'truong_khoa'))
+);
+
+CREATE TABLE NGANH (
+    ma_nganh NVARCHAR(10) PRIMARY KEY,
+    ten_nganh NVARCHAR(50) NOT NULL
+);
+
+CREATE TABLE SINH_VIEN (
+    ma_sv NVARCHAR(10) PRIMARY KEY,
+    username NVARCHAR(50) UNIQUE NOT NULL,
+    lop NVARCHAR(20) NOT NULL,
+    ma_nganh NVARCHAR(10) NOT NULL,
+    FOREIGN KEY (username) REFERENCES NGUOI_DUNG(username) ON DELETE CASCADE,
+    FOREIGN KEY (ma_nganh) REFERENCES NGANH(ma_nganh)
+);
+
+CREATE TABLE GIANG_VIEN (
+    ma_gv NVARCHAR(10) PRIMARY KEY,
+    username NVARCHAR(50) UNIQUE NOT NULL,
+    chuc_danh NVARCHAR(30),
+    linh_vuc NVARCHAR(100),
+    ma_nganh NVARCHAR(10) NOT NULL,
+    FOREIGN KEY (username) REFERENCES NGUOI_DUNG(username) ON DELETE CASCADE,
+    FOREIGN KEY (ma_nganh) REFERENCES NGANH(ma_nganh)
+);
+
+CREATE TABLE TRUONG_KHOA (
+    ma_tk NVARCHAR(10) PRIMARY KEY,
+    username NVARCHAR(50) UNIQUE NOT NULL,
+    FOREIGN KEY (username) REFERENCES NGUOI_DUNG(username) ON DELETE CASCADE
+);
+
+CREATE TABLE CONG_TY (
+    ma_cty NVARCHAR(10) PRIMARY KEY,
+    ten_cty NVARCHAR(100) NOT NULL,
+    dia_chi NVARCHAR(200),
+    nguoi_dai_dien NVARCHAR(50),
+    ma_nganh NVARCHAR(10) NOT NULL,
+    FOREIGN KEY (ma_nganh) REFERENCES NGANH(ma_nganh)
+);
+
+CREATE TABLE DOT_DANG_KY (
+    ma_dot NVARCHAR(10) PRIMARY KEY,
+    ten_dot NVARCHAR(100) NOT NULL,
+    loai_dot NVARCHAR(20) CHECK (loai_dot IN ('Thực tập', 'Đồ án')),
+    thoi_gian_bat_dau DATE NOT NULL,
+    thoi_gian_ket_thuc DATE NOT NULL,
+    trang_thai BOOLEAN DEFAULT false,
+    ma_tk NVARCHAR(10) NOT NULL,
+    FOREIGN KEY (ma_tk) REFERENCES TRUONG_KHOA(ma_tk),
+    CHECK (thoi_gian_ket_thuc > thoi_gian_bat_dau)
+);
+
+CREATE TABLE DO_AN (
+    ma_da NVARCHAR(10) PRIMARY KEY,
+    ten_de_tai NVARCHAR(200) NOT NULL,
+    trang_thai NVARCHAR(20) CHECK (trang_thai IN ('Chờ duyệt', 'Đã duyệt', 'Từ chối')),
+    cong_nghe NVARCHAR(255),
+    ngay_bao_cao DATE,
+    ma_sv NVARCHAR(10) NOT NULL,
+    ma_gv NVARCHAR(10) NOT NULL,
+    ma_dot NVARCHAR(10) NOT NULL,
+    FOREIGN KEY (ma_sv) REFERENCES SINH_VIEN(ma_sv),
+    FOREIGN KEY (ma_gv) REFERENCES GIANG_VIEN(ma_gv),
+    FOREIGN KEY (ma_dot) REFERENCES DOT_DANG_KY(ma_dot)
+);
+
+CREATE TABLE THUC_TAP (
+    ma_tt VARCHAR(10) PRIMARY KEY,
+    thoi_gian_bat_dau DATE NOT NULL,
+    thoi_gian_ket_thuc DATE NOT NULL,
+    ma_sv NVARCHAR(10) NOT NULL,
+    ma_cty NVARCHAR(10) NOT NULL,
+    ma_dot NVARCHAR(10) NOT NULL,
+    FOREIGN KEY (ma_sv) REFERENCES SINH_VIEN(ma_sv),
+    FOREIGN KEY (ma_cty) REFERENCES CONG_TY(ma_cty),
+    FOREIGN KEY (ma_dot) REFERENCES DOT_DANG_KY(ma_dot),
+    CHECK (thoi_gian_ket_thuc > thoi_gian_bat_dau)
+);
+
+-- NGUOI_DUNG (Thêm tất cả sinh viên, giảng viên, trưởng khoa)
+INSERT INTO NGUOI_DUNG (username, password, ho_ten, ngay_sinh, gioi_tinh, so_dien_thoai, email, role) VALUES
+('sv001', 'pass123', 'Nguyen Van A', '2002-05-10', 'Nam', '0123456789', 'nguyenvana@example.com', 'sinh_vien'),
+('sv002', 'pass456', 'Tran Thi B', '2001-08-15', 'Nữ', '0987654321', 'tranthib@example.com', 'sinh_vien'),
+('sv003', 'pass789', 'Le Van C', '2002-03-20', 'Nam', '0369852147', 'levanc@example.com', 'sinh_vien'),
+('sv004', 'pass159', 'Pham Thi D', '2001-12-28', 'Nữ', '0345678912', 'phamthid@example.com', 'sinh_vien'),
+('sv005', 'pass753', 'Hoang Van E', '2002-07-05', 'Nam', '0778996655', 'hoangvane@example.com', 'sinh_vien'),
+('gv001', 'pass321', 'Nguyen Thi X', '1980-04-15', 'Nữ', '0932456789', 'nguyenthix@example.com', 'giang_vien'),
+('gv002', 'pass654', 'Tran Van Y', '1975-09-25', 'Nam', '0912345678', 'tranvany@example.com', 'giang_vien'),
+('gv003', 'pass987', 'Le Hoang Z', '1982-11-30', 'Nam', '0987654323', 'lehoangz@example.com', 'giang_vien'),
+('gv004', 'pass147', 'Pham Minh Q', '1978-06-10', 'Nam', '0971234567', 'phamminhq@example.com', 'giang_vien'),
+('gv005', 'pass258', 'Bui Thi K', '1985-01-05', 'Nữ', '0956784321', 'buithik@example.com', 'giang_vien'),
+('tk001', 'pass369', 'Hoang Thanh T', '1970-03-08', 'Nam', '0945678321', 'hoangthanht@example.com', 'truong_khoa'),
+('tk002', 'pass789', 'Nguyen Van M', '1968-10-12', 'Nam', '0934876512', 'nguyenvanm@example.com', 'truong_khoa'),
+('tk003', 'pass951', 'Tran Thi H', '1972-05-22', 'Nữ', '0923564789', 'tranthih@example.com', 'truong_khoa'),
+('tk004', 'pass357', 'Le Dinh C', '1965-08-30', 'Nam', '0912345897', 'ledinhc@example.com', 'truong_khoa'),
+('tk005', 'pass852', 'Pham Tuan B', '1974-12-15', 'Nam', '0956789432', 'phamtuanb@example.com', 'truong_khoa');
+
+-- NGANH
+INSERT INTO NGANH (ma_nganh, ten_nganh) VALUES
+('CNTT', 'Công nghệ thông tin'),
+('KT', 'Kỹ thuật'),
+('QTKD', 'Quản trị kinh doanh'),
+('XD', 'Xây dựng'),
+('MKT', 'Marketing');
+
+-- SINH_VIEN
+INSERT INTO SINH_VIEN (ma_sv, username, lop, ma_nganh) VALUES
+('SV001', 'sv001', 'CNTT-01', 'CNTT'),
+('SV002', 'sv002', 'CNTT-02', 'CNTT'),
+('SV003', 'sv003', 'KT-01', 'KT'),
+('SV004', 'sv004', 'QTKD-01', 'QTKD'),
+('SV005', 'sv005', 'XD-01', 'XD');
+
+-- GIANG_VIEN
+INSERT INTO GIANG_VIEN (ma_gv, username, chuc_danh, linh_vuc, ma_nganh) VALUES
+('GV001', 'gv001', 'Tiến sĩ', 'Trí tuệ nhân tạo', 'CNTT'),
+('GV002', 'gv002', 'Phó giáo sư', 'Hệ thống nhúng', 'CNTT'),
+('GV003', 'gv003', 'Thạc sĩ', 'Quản lý dự án', 'QTKD'),
+('GV004', 'gv004', 'Tiến sĩ', 'Xây dựng công trình', 'XD'),
+('GV005', 'gv005', 'Thạc sĩ', 'Marketing kỹ thuật số', 'MKT');
+
+-- TRUONG_KHOA
+INSERT INTO TRUONG_KHOA (ma_tk, username) VALUES
+('TK001', 'tk001'),
+('TK002', 'tk002'),
+('TK003', 'tk003'),
+('TK004', 'tk004'),
+('TK005', 'tk005');
+
+-- CONG_TY
+INSERT INTO CONG_TY (ma_cty, ten_cty, dia_chi, nguoi_dai_dien, ma_nganh) VALUES
+('CTY001', 'FPT Software', 'Hà Nội', 'Nguyễn Văn A', 'CNTT'),
+('CTY002', 'Viettel', 'Hà Nội', 'Trần Văn B', 'KT'),
+('CTY003', 'VinGroup', 'Hồ Chí Minh', 'Lê Thị C', 'QTKD'),
+('CTY004', 'Hòa Bình Construction', 'Đà Nẵng', 'Phạm Văn D', 'XD'),
+('CTY005', 'Unilever', 'Hà Nội', 'Hoàng Minh E', 'MKT');
+
+-- DOT_DANG_KY
+INSERT INTO DOT_DANG_KY (ma_dot, ten_dot, loai_dot, thoi_gian_bat_dau, thoi_gian_ket_thuc, trang_thai, ma_tk) VALUES
+('DOT001', 'Đợt 1 năm 2025', 'Thực tập', '2025-01-01', '2025-05-30', true, 'TK001'),
+('DOT002', 'Đợt 2 năm 2025', 'Đồ án', '2025-06-01', '2025-11-30', false, 'TK002'),
+('DOT003', 'Đợt 3 năm 2025', 'Thực tập', '2025-02-01', '2025-06-30', true, 'TK003'),
+('DOT004', 'Đợt 4 năm 2025', 'Đồ án', '2025-07-01', '2025-12-31', false, 'TK004'),
+('DOT005', 'Đợt 5 năm 2025', 'Thực tập', '2025-03-01', '2025-07-30', true, 'TK005');
+
+-- DO_AN
+INSERT INTO DO_AN (ma_da, ten_de_tai, trang_thai, cong_nghe, ngay_bao_cao, ma_sv, ma_gv, ma_dot) VALUES
+('DA001', 'Ứng dụng AI trong nhận diện khuôn mặt', 'Chờ duyệt', 'Python, TensorFlow', '2025-06-15', 'SV001', 'GV001', 'DOT002'),
+('DA002', 'Phát triển hệ thống IoT giám sát môi trường', 'Đã duyệt', 'Arduino, MQTT', '2025-06-20', 'SV002', 'GV002', 'DOT002'),
+('DA003', 'Quản lý dự án bằng Agile', 'Từ chối', 'Jira, Scrum', '2025-06-25', 'SV003', 'GV003', 'DOT002'),
+('DA004', 'Thiết kế công trình xanh', 'Chờ duyệt', 'AutoCAD, Revit', '2025-07-10', 'SV004', 'GV004', 'DOT004'),
+('DA005', 'Chiến lược marketing sản phẩm số', 'Đã duyệt', 'Google Ads, Facebook Ads', '2025-07-15', 'SV005', 'GV005', 'DOT004');
+
+-- THUC_TAP
+INSERT INTO THUC_TAP (ma_tt, thoi_gian_bat_dau, thoi_gian_ket_thuc, ma_sv, ma_cty, ma_dot) VALUES
+('TT001', '2025-01-10', '2025-05-30', 'SV001', 'CTY001', 'DOT001'),
+('TT002', '2025-02-01', '2025-06-30', 'SV002', 'CTY002', 'DOT003'),
+('TT003', '2025-03-15', '2025-07-30', 'SV003', 'CTY003', 'DOT005'),
+('TT004', '2025-04-01', '2025-08-31', 'SV004', 'CTY004', 'DOT005'),
+('TT005', '2025-05-10', '2025-09-30', 'SV005', 'CTY005', 'DOT005');
+
